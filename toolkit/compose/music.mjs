@@ -4,7 +4,7 @@
 // The level comes from a volume automation lane: `bed` under content scenes (default 0.09, about 21 dB under a -20
 // LUFS voice) and `highlight` on cards (default 0.2).
 import { execFileSync } from 'node:child_process';
-import { mkdirSync } from 'node:fs';
+import { existsSync, mkdirSync } from 'node:fs';
 import { join } from 'node:path';
 
 const r2 = (n) => Math.round(n * 100) / 100;
@@ -18,6 +18,11 @@ const r2 = (n) => Math.round(n * 100) / 100;
 export function soundtrack({ project, comp, music = {}, starts, total, loud }) {
     const tracks = music.tracks ?? {};
     if (!Object.keys(tracks).length) return '';
+    const missing = Object.values(tracks).filter((f) => !existsSync(join(project, f)));
+    if (missing.length) {
+        console.warn(`music skipped: missing ${missing.join(', ')} (get the tracks as in docs/music.md)`);
+        return '';
+    }
     const bed = music.bed ?? 0.09, highlight = music.highlight ?? 0.2;
     const tmp = join(comp, '.media', 'mix');
     mkdirSync(tmp, { recursive: true });

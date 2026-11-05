@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Taskboard</title>
+<style>
+  :root { --bg: #f4f6fb; --card: #fff; --ink: #14213d; --muted: #5c6b8a; --accent: #1463ff; --line: #dfe4ef; }
+  * { box-sizing: border-box; }
+  body { margin: 0; font: 28px/1.4 system-ui, sans-serif; background: var(--bg); color: var(--ink); }
+  header { display: flex; align-items: center; gap: 14px; padding: 22px 48px; background: var(--card); border-bottom: 1px solid var(--line); }
+  header h1 { margin: 0; font-size: 38px; }
+  main { max-width: 1300px; margin: 64px auto; padding: 0 24px; }
+  form { display: flex; gap: 12px; padding: 20px; background: var(--card); border: 1px solid var(--line); border-radius: 14px; }
+  label { position: absolute; left: -9999px; }
+  input, select, button { font: inherit; padding: 12px 14px; border: 1px solid var(--line); border-radius: 10px; }
+  input { flex: 1; }
+  button { background: var(--accent); color: #fff; border: 0; padding: 12px 26px; font-weight: 600; cursor: pointer; }
+  ul { list-style: none; margin: 24px 0 0; padding: 0; display: grid; gap: 10px; }
+  li { display: flex; align-items: center; gap: 14px; padding: 16px 20px; background: var(--card); border: 1px solid var(--line); border-radius: 12px; }
+  li input { flex: none; width: 32px; height: 32px; }
+  li .title { flex: 1; }
+  li.done .title { text-decoration: line-through; color: var(--muted); }
+  .tag { font-size: 20px; font-weight: 700; padding: 4px 10px; border-radius: 999px; border: 2px solid currentColor; }
+  .empty { margin-top: 24px; padding: 48px; text-align: center; color: var(--muted); border: 2px dashed var(--line); border-radius: 14px; }
+  .count { margin-left: auto; color: var(--muted); }
+</style>
+</head>
+<body>
+<header><svg width="32" height="32" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="4" fill="none" stroke="#1463ff" stroke-width="2"/><path d="M7 12l3 3 7-7" fill="none" stroke="#1463ff" stroke-width="2"/></svg><h1>Taskboard</h1><span class="count" id="count">0 tasks</span></header>
+<main>
+  <form id="form">
+    <label for="title">Task</label><input id="title" placeholder="What needs doing?" autocomplete="off" required>
+    <label for="priority">Priority</label>
+    <select id="priority"><option>Low</option><option selected>Normal</option><option>High</option></select>
+    <button type="submit">Add</button>
+  </form>
+  <p class="empty" id="empty">No tasks yet. Add the first one above.</p>
+  <ul id="list"></ul>
+</main>
+<script>
+  // Demo app for spielbot: state lives in memory, so every page load starts empty (nothing to clean up).
+  const list = document.getElementById('list'), empty = document.getElementById('empty'), count = document.getElementById('count');
+  const refresh = () => { const n = list.children.length; empty.hidden = n > 0; count.textContent = `${n} task${n === 1 ? '' : 's'}`; };
+  document.getElementById('form').addEventListener('submit', (e) => {
+    e.preventDefault();
+    const title = document.getElementById('title'), prio = document.getElementById('priority').value;
+    const li = document.createElement('li');
+    li.innerHTML = `<input type="checkbox" aria-label="Done"><span class="title"></span><span class="tag">${prio}</span>`;
+    li.querySelector('.title').textContent = title.value;
+    li.querySelector('input').addEventListener('change', (ev) => li.classList.toggle('done', ev.target.checked));
+    list.append(li); title.value = ''; refresh();
+  });
+  refresh();
+</script>
+</body>
+</html>

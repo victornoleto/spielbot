@@ -1,0 +1,13 @@
+{
+  "title": "Hello, spielbot",
+  "lang": "en-US",
+  "voice": { "engine": "edge", "id": "en-US-AndrewNeural", "rate": "+0%", "pause": 0.7 },
+  "app": { "baseUrl": "http://127.0.0.1:4173", "locale": "en-US", "timezone": "UTC" },
+  "cards": {
+    "00-intro": { "type": "title", "title": "Hello, spielbot", "subtitle": "A video planned, recorded and edited by an agent" },
+    "cap1-tasks": { "type": "chapter", "title": "Adding a task", "subtitle": "From an empty board to a finished item" },
+    "03-end": { "type": "closing", "lines": ["One phrase, one beat.", "Made with spielbot"] }
+  },
+  "badges": { "01-add-task": [{ "icon": "new", "text": "Demo app" }] },
+  "music": { "tracks": { "00-intro": ".media/audio/bgm/bgm_001.wav" }, "bed": 0.09, "highlight": 0.2 }
+}

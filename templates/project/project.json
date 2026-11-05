@@ -1,0 +1,14 @@
+{
+  "title": "<title>",
+  "lang": "pt-BR",
+  "voice": { "engine": "edge", "id": "pt-BR-AntonioNeural", "rate": "+0%", "pause": 0.7 },
+  "app": { "baseUrl": "http://localhost:3000", "locale": "pt-BR", "timezone": "America/Sao_Paulo" },
+  "theme": {},
+  "cards": {
+    "00-intro": { "type": "title", "title": "<title>", "subtitle": "<subtitle>" },
+    "cap1-<slug>": { "type": "chapter", "title": "<chapter title>", "subtitle": "<chapter subtitle>" },
+    "99-end": { "type": "closing", "lines": ["<line 1>", "<line 2>"] }
+  },
+  "badges": {},
+  "music": { "tracks": {}, "bed": 0.09, "highlight": 0.2 }
+}

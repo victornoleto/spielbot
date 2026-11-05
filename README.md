@@ -1,6 +1,6 @@
 # spielbot
 
-[![spielbot intro video: one minute, made with spielbot](docs/media/spielbot-intro.jpg)](docs/media/spielbot-intro.mp4)
+https://github.com/user-attachments/assets/34bf80a0-d3d7-4b54-90f3-6c02a36a0866
 
 **Lights, camera, agent.** spielbot is a framework that lets a coding agent produce narrated product videos end to
 end. You open this repository in your agent (Claude Code, Codex, OpenCode or any harness that reads `AGENTS.md`),

@@ -1,0 +1,49 @@
+#!/usr/bin/env bash
+# spielbot: one entry point for every toolkit step. Run `bin/spielbot help`.
+set -euo pipefail
+ROOT=$(cd "$(dirname "$(readlink -f "$0")")/.." && pwd)
+HF="npx --yes hyperframes@${HYPERFRAMES_VERSION:-0.9.16}"
+cmd=${1:-help}; shift || true
+
+need_project() {
+    [ -n "${1:-}" ] && [ -f "$1/project.json" ] || { echo "usage: spielbot $cmd <project-dir> ...  (no project.json in '${1:-}')" >&2; exit 2; }
+}
+
+case "$cmd" in
+    doctor)   exec "$ROOT/toolkit/doctor.sh" "$@" ;;
+    new)      # spielbot new <slug> [parent-dir]
+              slug=${1:?usage: spielbot new <slug> [parent-dir]}; dest="${2:-$ROOT/projects}/$slug"
+              [ -e "$dest" ] && { echo "$dest already exists" >&2; exit 1; }
+              mkdir -p "$(dirname "$dest")" && cp -r "$ROOT/templates/project" "$dest" && echo "$dest" ;;
+    narrate)  need_project "${1:-}"; exec uv run --quiet "$ROOT/toolkit/narrate/narrate.py" "$@" ;;
+    probe)    need_project "${1:-}"; p=$1; shift; exec "$ROOT/toolkit/capture/with-state.sh" "$p" node "$ROOT/toolkit/capture/run.mjs" "$p" --probe "$@" ;;
+    record)   need_project "${1:-}"; p=$1; shift; exec "$ROOT/toolkit/capture/with-state.sh" "$p" node "$ROOT/toolkit/capture/run.mjs" "$p" "$@" ;;
+    explore)  need_project "${1:-}"; exec "$ROOT/toolkit/capture/with-state.sh" "$1" node "$ROOT/toolkit/capture/explore.mjs" "$@" ;;
+    frames)   need_project "${1:-}"; exec python3 "$ROOT/toolkit/capture/frames.py" "$@" ;;
+    build)    need_project "${1:-}"; exec node "$ROOT/toolkit/compose/build.mjs" "$@" ;;
+    check)    need_project "${1:-}"; cd "$1/build/composition" && exec $HF check --json 2>../check.log ;;
+    snapshot) need_project "${1:-}"; p=$1; shift; cd "$p/build/composition" && exec $HF snapshot "$@" ;;
+    preview)  need_project "${1:-}"; cd "$1/build/composition" && exec $HF preview --background ;;
+    render)   need_project "${1:-}"; p=$(cd "$1" && pwd); name=${2:-video}; mkdir -p "$p/build/out"
+              cd "$p/build/composition" && $HF render -o "$p/build/out/$name.mp4" --video-frame-format png --quiet
+              ffprobe -v error -show_entries stream=codec_name,width,height,r_frame_rate:format=duration -of compact "$p/build/out/$name.mp4"
+              ffmpeg -nostats -i "$p/build/out/$name.mp4" -af ebur128 -f null - 2>&1 | grep -A1 'Integrated loudness' | tail -1 ;;
+    progress) need_project "${1:-}"; exec python3 "$ROOT/toolkit/render/progress.py" "$1" ;;
+    help|*)   cat <<'USAGE'
+spielbot <command> <project-dir> [args]
+
+  doctor [--fix]                    check (and install) what the toolkit needs
+  new <slug> [parent-dir]           create a project from templates/project (default parent: projects/)
+  narrate <project> [scene…]        voice + build/timings.json
+  probe <project> [scene…]          measure each beat (build/beats.json) and screenshot it (build/probe/)
+  record <project> [scene…]         record app scenes following build/timings.json (build/clips/)
+  explore <project> <steps.mjs>     run throwaway steps on the logged-in app, with screenshots (build/explore/)
+  frames <project> [scene…] [--mid] end-of-phrase frames for checking (build/frames/)
+  build <project> [--no-video]      HyperFrames composition (build/composition/)
+  check | preview <project>         hyperframes check --json | preview in the background
+  snapshot <project> [--at t …]     hyperframes snapshot
+  render <project> [name]           MP4 in build/out/<name>.mp4, then its format and loudness
+  progress <project>                frames encoded so far by a running render
+USAGE
+              ;;
+esac

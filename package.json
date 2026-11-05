@@ -1,0 +1,10 @@
+{
+  "name": "spielbot",
+  "private": true,
+  "type": "module",
+  "description": "An agent-driven framework for narrated product videos: script, voice, screen capture, composition and render.",
+  "engines": { "node": ">=22" },
+  "dependencies": {
+    "playwright-core": "1.64.1"
+  }
+}

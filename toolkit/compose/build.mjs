@@ -191,7 +191,7 @@ writeFileSync(join(comp, 'compositions', 'captions.html'), `<template>
   <style>
     ${fontFaces(theme.font)}
     #root { position: absolute; inset: 0; pointer-events: none; }
-    .cap { position: absolute; left: 0; bottom: 64px; width: 1920px; text-align: center; }
+    .cap { position: absolute; left: 0; bottom: ${cfg.captionsBottom ?? 64}px; width: 1920px; text-align: center; }
     .cap span { display: inline-block; max-width: 1500px; padding: 10px 26px 12px; border-radius: 14px;
       background: rgba(11, 31, 68, 0.86); color: #fff; font: 500 40px/1.3 '${theme.font}', sans-serif; }
   </style>

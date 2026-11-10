@@ -58,6 +58,8 @@ Each card part appears when its phrase starts (`f[i]`):
 | `closing` | `lines` (max 2), `logo?`, `background?` | i → line i |
 
 `"captions": false` on a card hides its captions; `"captions": false` at the top level hides all captions.
+`"captionsBottom": <px>` at the top level lifts the captions off the bottom edge (default 64), clear of an app's
+bottom bar.
 
 ## scenes.mjs
 

@@ -15,6 +15,9 @@ Usage: uv run toolkit/narrate/narrate.py <project> [scene ...]
 Voice, rate, pause and engine come from <project>/project.json ("voice": {...}); flags override them:
   --engine edge|elevenlabs  --voice <id>  --rate +0%  --pause 0.7
 Output: <project>/build/audio/<scene>.mp3 and <project>/build/timings.json.
+
+"voice.pronounce" ({"hub": "rôbi", ...}) respells words for the voice only; captions keep the script's spelling.
+A key matches the start of a word, case-insensitive, and the rest of the word is kept ("hubs" -> "rôbis").
 """
 import argparse, asyncio, base64, json, os, re, subprocess, urllib.request
 from pathlib import Path
@@ -76,8 +79,25 @@ async def speak_elevenlabs(phrase: str, voice: str, rate: str) -> tuple[bytes, l
 ENGINES = {"edge": speak_edge, "elevenlabs": speak_elevenlabs}
 
 
-def captions(phrase: str, start: float, end: float, words: list[float]) -> list[dict]:
+def respell(phrase: str, pronounce: dict[str, str]) -> tuple[str, list[int]]:
+    """What the voice reads, and for each script word the index of its first spoken word (a respelling can split one
+    word in two, as "backend" -> "béqui end", and the word timings follow the spoken words)."""
+    keys = sorted(pronounce, key=len, reverse=True)
+    out, index = [], []
+    for tok in phrase.split():
+        index.append(len(out))
+        for k in keys:
+            m = re.match(rf"(\W*){re.escape(k)}", tok, re.I)
+            if m:
+                tok = m[1] + pronounce[k] + tok[m.end():]
+                break
+        out += tok.split()
+    return " ".join(out), index
+
+
+def captions(phrase: str, start: float, end: float, words: list[float], index: list[int]) -> list[dict]:
     """Split the phrase in chunks of up to 8 words (preferring a comma) and time each by the word that opens it."""
+    words = [words[min(j, len(words) - 1)] for j in index] if words else words
     tokens, chunks, cur = phrase.split(), [], []
     for i, t in enumerate(tokens):
         cur.append(i)
@@ -93,7 +113,7 @@ def captions(phrase: str, start: float, end: float, words: list[float]) -> list[
 
 
 async def scene(out_dir: Path, name: str, phrases: list[str], speak, voice: str, rate: str, pause: float,
-                beats: list[float]) -> dict:
+                beats: list[float], pronounce: dict[str, str]) -> dict:
     """`beats[i]`: how long beat i takes on screen (build/beats.json)."""
     pcm, t, items, subs = bytearray(), 0.0, [], []
     for i, phrase in enumerate(phrases):
@@ -102,10 +122,11 @@ async def scene(out_dir: Path, name: str, phrases: list[str], speak, voice: str,
             p = max(pause, short)
             pcm += b"\0\0" * int(RATE_HZ * p)
             t += p
-        audio, words = await speak(phrase, voice, rate)
+        spoken, index = respell(phrase, pronounce)
+        audio, words = await speak(spoken, voice, rate)
         dur = len(audio) / 2 / RATE_HZ
         items.append({"start": round(t, 3), "end": round(t + dur, 3), "text": phrase})
-        subs += captions(phrase, t, t + dur, words)
+        subs += captions(phrase, t, t + dur, words, index)
         pcm += audio
         t += dur
     subprocess.run(["ffmpeg", "-v", "error", "-y", "-f", "s16le", "-ac", "1", "-ar", str(RATE_HZ), "-i", "pipe:0",
@@ -141,7 +162,8 @@ async def main() -> None:
     if unknown:
         raise SystemExit(f"not in script.md: {', '.join(unknown)}")
     for name in a.scene or all_scenes:
-        timings[name] = await scene(out_dir, name, all_scenes[name], ENGINES[engine], voice, rate, pause, beats.get(name, []))
+        timings[name] = await scene(out_dir, name, all_scenes[name], ENGINES[engine], voice, rate, pause, beats.get(name, []),
+                                    cfg.get("pronounce", {}))
     timings = {s: timings[s] for s in all_scenes if s in timings}
     f_timings.write_text(json.dumps(timings, indent=2, ensure_ascii=False))
     for s, d in timings.items():

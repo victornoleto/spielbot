@@ -25,7 +25,8 @@ Scenes are `### <scene-id>` headings, in video order. The id is kebab-case and u
   stays on one line.
 
 A phrase is one sentence of about 6 to 25 words, spoken in under 8 seconds. Numbers and acronyms are written the way
-they should be spoken when the voice mispronounces them.
+they should be spoken when the voice mispronounces them. A word the voice gets wrong everywhere goes in
+`voice.pronounce` instead (`{"hub": "rôbi"}`): the voice reads the respelling, the captions keep the script's spelling.
 
 ## project.json
 

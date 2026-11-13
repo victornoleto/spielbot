@@ -13,7 +13,8 @@ description: Phase 4 of a spielbot video. Use to choose a voice and generate nar
    `bin/spielbot narrate <project>`. It prints each scene's length and the total.
 4. Listen-check without ears: phrases with odd pronunciation are usually numbers, acronyms and foreign words.
    Rewrite those phrases the way they should sound and regenerate only their scenes
-   (`bin/spielbot narrate <project> <scene>`).
+   (`bin/spielbot narrate <project> <scene>`). A word that recurs (a product name, an English term) goes in `project.json` →
+   `voice.pronounce` instead, so the captions keep the right spelling; then regenerate every scene.
 
 **Gate:** the user approves the voice and the total length. Next: `spielbot-capture` when there are app scenes,
 else `spielbot-compose`.
